@@ -183,7 +183,10 @@ class RPMFile(object):
         if self._data_file is None:
             fileobj = _SubFile(self._fileobj, self.data_offset)
 
-            if self.headers["archive_compression"] == b"xz":
+            # Fix for KeyError: 'archive_compression'
+            if "archive_compression" not in self.headers:
+                self._data_file = gzip.GzipFile(fileobj=fileobj)
+            elif self.headers["archive_compression"] == b"xz":
                 if not getattr(sys.modules[__name__], "lzma", False):
                     raise NoLZMAModuleError("lzma module not present")
                 self._data_file = lzma.LZMAFile(fileobj)
